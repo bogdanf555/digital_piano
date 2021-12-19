@@ -12,7 +12,6 @@ LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 // buzzers
 Tone buzzer1;
-Tone buzzer2;
 
 // tones on board
 int octave_index = 3;
@@ -114,7 +113,6 @@ void setup()
 
     // init piezo
     pinMode(PIEZO_OUTPUT_1, OUTPUT);
-    pinMode(PIEZO_OUTPUT_2, OUTPUT);
 
     // init utils
     record_button.begin();
@@ -128,7 +126,6 @@ void setup()
 
     // init buzzers
     buzzer1.begin(PIEZO_OUTPUT_1);
-    buzzer2.begin(PIEZO_OUTPUT_2);
 
     // init lcd
     lcd.init();

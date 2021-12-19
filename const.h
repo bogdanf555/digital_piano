@@ -25,7 +25,6 @@
 
 // piezo
 #define PIEZO_OUTPUT_1 2
-#define PIEZO_OUTPUT_2 3
 
 // PIANO BUTTONS
 #define FIRST 53
