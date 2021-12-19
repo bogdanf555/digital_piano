@@ -17,6 +17,7 @@
 #define PLAYING_NOTES_CAP 100
 
 #define RECORD_CAP 100
+#define PAUSE_BETWEEN_SONGS 500 // milliseconds
 
 // utilities
 #define RECORD_BUTTON 37

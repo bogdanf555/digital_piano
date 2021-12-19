@@ -31,7 +31,9 @@ unsigned long first_stamp;
 
 // singing variables
 int singed_index = -1;
-unsigned start_singing_stamp;
+bool last_singing_stamp_recorded = false;
+unsigned long start_singing_stamp;
+unsigned long last_singing_stamp;
 
 // keys creation
 Key keyboard[8] = {{FIRST}, {SECOND}, {THIRD}, {FOURTH}, {FIFTH}, {SIXTH}, {SEVENTH}, {EIGHTH}};
@@ -104,6 +106,9 @@ void record_note(int note)
 
 void setup()
 {
+
+    // Serial.begin(9600); // JUST FOR DEBUGING REASONS :))
+
     // init led built in
     pinMode(LED_BUILTIN, OUTPUT);
 
@@ -133,7 +138,29 @@ void setup()
     check_vector_allocation();
 }
 
+void serial_print_state_of_recorded() // JUST FOR DEBUGING REASONS :))
+{
+    Serial.println("Notes: ");
+    Serial.println("Notes length: " + String(recorded_keys.length()));
+    for (int i = 0; i < recorded_keys.length(); i++)
+    {
+        Serial.print(String((int)recorded_keys.at_index(i)) + " ");
+    }
+
+    Serial.println("\nTimes: ");
+    Serial.println("Times length: " + String(recorded_time_stamps.length()));
+    for (int i = 0; i < recorded_time_stamps.length(); i++)
+    {
+        Serial.print(String((int)recorded_time_stamps.at_index(i)) + " ");
+    }
+    Serial.println();
+}
+
 int key_state;
+int note;
+int timestamp;
+int to_play;
+int to_stop;
 void loop()
 {
     lcd_update();
@@ -142,7 +169,6 @@ void loop()
     key_state = record_button.isToggled();
     if (key_state == JUST_PRESSED)
     {
-        Serial.println(piano_state);
         if (piano_state == PLAY)
         {
             piano_state = REC;
@@ -156,6 +182,8 @@ void loop()
             piano_state = SING;
             recorded_time_stamps.subtract_by(recorded_time_stamps.first());
             singed_index = -1;
+            last_singing_stamp = millis();
+            last_singing_stamp_recorded = true;
             buzzer1.stop();
             playing_notes.reset();
         }
@@ -169,24 +197,30 @@ void loop()
 
     if (piano_state == SING)
     {
-        if (singed_index == -1)
-            start_singing_stamp = millis();
 
-        if (singed_index < recorded_keys.length())
+        if (singed_index == -1 && millis() > last_singing_stamp + PAUSE_BETWEEN_SONGS)
         {
-            int note = recorded_keys.at_index(singed_index);
-            unsigned int timestamp = recorded_time_stamps.at_index(singed_index);
+            start_singing_stamp = millis();
+            last_singing_stamp_recorded = false;
+            singed_index++;
+        }
 
-            if (timestamp + start_singing_stamp >= millis())
+        if (singed_index < recorded_keys.length() && singed_index != -1)
+        {
+            note = recorded_keys.at_index(singed_index);
+            timestamp = recorded_time_stamps.at_index(singed_index);
+
+            if (timestamp + start_singing_stamp < millis())
             {
+
                 if (note >= 0)
                 {
-                    int to_play = octaves[(note / 10)][(note % 10)];
+                    to_play = octaves[(note / 10)][(note % 10)];
                     play_note(to_play);
                 }
                 else
                 {
-                    int to_stop = octaves[(-note / 10)][(-note % 10)];
+                    to_stop = octaves[(-note / 10)][(-note % 10)];
                     stop_note(to_stop);
                 }
                 singed_index++;
@@ -195,6 +229,11 @@ void loop()
         else
         {
             singed_index = -1;
+            if (!last_singing_stamp_recorded)
+            {
+                last_singing_stamp = millis();
+                last_singing_stamp_recorded = true;
+            }
         }
     }
     else
